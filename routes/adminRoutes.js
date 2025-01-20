@@ -3,7 +3,7 @@ const { signin, signup, addcourse, viewcourse, updatecourse } = require("../cont
 const { adminAuth } = require("../middleware/adminAuth.js");
 const adminRouter = Router();
 adminRouter.post('/signup', signup);
-adminRouter.post('signin', signin);
+adminRouter.post('/signin', signin);
 adminRouter.post('/add', adminAuth, addcourse);
 adminRouter.put('/update', adminAuth, updatecourse);
 adminRouter.get('/preview', adminAuth, viewcourse);
