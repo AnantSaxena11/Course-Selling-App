@@ -1,4 +1,5 @@
 const { userModel } = require("../models/userSchema.js");
+const {purchaseModel} =  require('../models/purchaseSchema.js')
 const bcrypt = require('bcrypt');
 const { z } = require("zod");
 const jwt = require("jsonwebtoken");
@@ -110,9 +111,19 @@ const signin = async function signin(req, res) {
 
 
 const mypurchases = async function myPurchase(req, res) {
-    res.json({
-        message: "Viewing my purchases"
-    })
+    const userId = req.userId;
+
+    try {
+        const mypurchase = await purchaseModel.find({
+            userId : userId
+        })
+        res.json({
+            message : "All my purchases are as follows",
+            mypurchase : mypurchase
+        })
+    } catch (error) {
+        console.log(error)
+    }
 }
 module.exports = {
     signup: signup,

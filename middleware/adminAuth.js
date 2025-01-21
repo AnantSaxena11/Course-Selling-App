@@ -8,6 +8,12 @@ const adminAuth = async function(req,res,next){
         req.adminId = payload.id;
         next();
     }
+    else
+    {
+        res.status(403).json({
+            message : "You are not signed in"
+        })
+    }
 }
 module.exports = {
     adminAuth : adminAuth

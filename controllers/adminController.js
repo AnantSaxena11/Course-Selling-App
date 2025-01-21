@@ -1,10 +1,11 @@
-const {adminModel} = require('../models/adminSchema.js')
+const { adminModel } = require('../models/adminSchema.js');
+const { courseModel } = require('../models/courseSchema.js');
 const bcrypt = require('bcrypt');
 const { z } = require("zod");
 const jwt = require("jsonwebtoken");
 const dotenv = require('dotenv');
 dotenv.config();
-const signup = async function(req,res){
+const signup = async function (req, res) {
     const requiredSchema = z.object({
         email: z.string().email(),
         password: z.string()
@@ -51,7 +52,7 @@ const signup = async function(req,res){
         console.log("Error", error);
     }
 }
-const signin = async function(req,res){
+const signin = async function (req, res) {
     const requiredSchema = z.object({
         email: z.string().email(),
         password: z.string()
@@ -62,7 +63,7 @@ const signin = async function(req,res){
             .refine((password) => /[A-Z]/.test(password), { message: "Password must contain at least one uppercase letter" })
             .refine((password) => /[!@#$%^&*(),.?":{}|<>]/.test(password), { message: "Password must contain at least one special character" })
     });
-    
+
     const parsedDatawithSuccess = requiredSchema.safeParse(req.body);
     if (!parsedDatawithSuccess.success) {
         return res.status(400).json({
@@ -107,29 +108,110 @@ const signin = async function(req,res){
     }
 }
 
-const addcourse = async function(req,res){
-    res.json({
-        message : "Course added success"
+const addcourse = async function (req, res) {
+    const courseSchema = z.object({
+        title: z.string(),
+        description: z.string(),
+        price: z.number(),
+        imageUrl: z.string()
     })
+
+    const parsedDatawithSuccess = courseSchema.safeParse(req.body);
+    if (!parsedDatawithSuccess) {
+        return res.json({
+            message: "Course details formating is wrong"
+        })
+    }
+
+    const creatorId = req.adminId;
+    const { title, description, price, imageUrl } = req.body;
+    try {
+        const course = await courseModel.create({
+            title: title,
+            description: description,
+            price: price,
+            imageUrl: imageUrl,
+            creatorId: creatorId
+        })
+        res.status(201).json({
+            message: "Course added successfully",
+            courseId: course._id
+        })
+    } catch (error) {
+        console.log("error", error)
+    }
 }
 
 
-const updatecourse = async function(req,res){
-    res.json({
-        message : "course updated"
-    })
-}
+const updateCourse = async function (req, res) {
+    const adminId = req.adminId;
+    const { new_title, new_description, new_price, new_imageUrl, courseId } = req.body;
 
-const viewcourse = async function(req,res){
-    res.json({
-        message : "viewing all the courses"
-    })
+    if (!courseId || !adminId) {
+        return res.status(400).json({ message: "Missing courseId or adminId" });
+    }
+    try {
+        const filter = {
+            _id: courseId,
+            creatorId: adminId
+        };
+        const update = {
+            title: new_title,
+            description: new_description,
+            price: new_price,
+            imageUrl: new_imageUrl
+
+        };
+
+        const result = await courseModel.updateOne(filter, update);
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({
+                message: "Course not found or not authorized to update"
+            });
+        }
+
+        if (result.modifiedCount === 0) {
+            return res.status(200).json({
+                message: "No changes were made as the data is identical",
+                courseId: courseId
+            });
+        }
+
+        res.status(200).json({
+            message: "Course updated successfully",
+            courseId: courseId
+        });
+    } catch (error) {
+        console.error("Error updating course:", error);
+        res.status(500).json({
+            message: "Internal Server Error",
+            error: error.message
+        });
+    }
+};
+
+
+const viewcourse = async function (req, res) {
+    const creatorId = req.adminId;
+    try {
+        const details = await courseModel.find({
+            creatorId: creatorId
+        })
+        res.json({
+            details
+        })
+    } catch (error) {
+        res.json({
+            message: "Course not there in the database"
+        })
+    }
 }
 
 module.exports = {
-    signup : signup,
-    signin : signin,
-    addcourse : addcourse,
-    updatecourse : updatecourse,
-    viewcourse : viewcourse
+    signup: signup,
+    signin: signin,
+    addcourse: addcourse,
+    updateCourse: updateCourse,
+    viewcourse: viewcourse
 }
