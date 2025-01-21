@@ -1,4 +1,4 @@
-const { purchaseModel } = require("../models/purchaseSchema.js")
+const { courseModel } = require("../models/courseSchema.js")
 const purchase = async function (req, res) {
     const userId = req.userId;
     const courseId = req.body.courseId;
@@ -21,15 +21,14 @@ const purchase = async function (req, res) {
 }
 
 const allCourse = async function (req, res) {
-    const userId = req.userId;
+    
     try {
-        const userCourses = await purchaseModel.find({
-            userId: userId
+        const Courses = await courseModel.find({
         })
 
         res.json({
-            message: "All the courses of the users",
-            userCourses: userCourses
+            message: "All the courses",
+            Courses: Courses
         })
     } catch (error) {
         console.log(error)
