@@ -25,6 +25,7 @@ const signup = async function (req, res) {
             error: parsedDatawithSuccess.error.errors
         })
     }
+    
     const { email, password, firstname, lastname } = req.body;
     try {
         const duplicate = await adminModel.findOne({
